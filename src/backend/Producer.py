@@ -48,6 +48,7 @@ failure_types = [
     'Bit_Wear', 'High_Vibration', 'Sensor_Fault', 'Compressor_Failure'
 ]
 
+
 def json_serializer(obj):
     """Convert NumPy types to native Python types for JSON serialization"""
     if isinstance(obj, (np.integer,)):
@@ -100,32 +101,6 @@ def generate_sensor_data(device_id, timestamp):
         'failure_type': 'None'
     }
 
-    # حذف هدف‌ها (در اینجا تولید نشده‌اند)
-    return record
-
-# --- Infinite Stream ---
-print(f"📡 Sending streaming data for {rig_id} to Kafka topic '{topic}' ... (Ctrl+C to stop)")
-
-record_id = 0
-try:
-    while True:
-        record = generate_one_record(seconds_since_start)
-        
-        try:
-            producer.produce(topic, key=str(record_id), value=json.dumps(record))
-            producer.poll(0)
-            print(f"[{record_id}] Sent record at {record['Timestamp']}")
-            logger.debug(f"Produced record {record_id} to topic {topic}")
-            
-        except Exception as e:
-            logger.error(f"Failed to produce record {record_id}: {e}")
-            print(f"❌ Failed to send record {record_id}: {e}")
-        
-        record_id += 1
-        seconds_since_start += 1
-        time.sleep(1)
-
-except KeyboardInterrupt:
     logger.info("Producer stopped by user")
     print("\n⛔️ Stopped by user.")
     producer.flush()
@@ -173,7 +148,6 @@ def produce_sensor_data(producer):
         print("\n🛑 Stopping producer...")
     finally:
         producer.flush()
-
 
 
 if __name__ == "__main__":
